@@ -1,5 +1,6 @@
 {
     "name": "zuruck/artemis",
+    "description": "learning project",
     "type": "project",
     "autoload": {
         "psr-4": {
