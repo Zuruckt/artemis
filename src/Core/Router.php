@@ -6,8 +6,8 @@ namespace App\Core;
 
 class Router
 {
-    public function helloWorld(): void
+    public function helloWorld(): string
     {
-        echo 'Hello World!';
+        return 'Hello world.';
     }
 }
