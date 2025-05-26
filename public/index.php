@@ -7,4 +7,6 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $router = new Router;
 
-$router->helloWorld();
+$response = $router->helloWorld();
+
+echo $response;

@@ -8,6 +8,6 @@ class Router
 {
     public function helloWorld(): string
     {
-        return 'Hello world.';
+        return 'Hello World!';
     }
 }
