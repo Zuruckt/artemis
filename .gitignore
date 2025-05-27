@@ -8,5 +8,6 @@ vendor
 .php-cs-fixer.cache
 
 tests/coverage
+laradumps.yaml
 
 .env
