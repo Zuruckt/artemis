@@ -1,12 +1,27 @@
 <?php
 declare(strict_types=1);
 
-use App\Core\Router;
-
 require __DIR__ . '/../vendor/autoload.php';
 
-$router = new Router;
+$request = \Laminas\Diactoros\ServerRequestFactory::fromGlobals($_SERVER, $_GET, $_POST, $_COOKIE, $_FILES);
 
-$response = $router->helloWorld();
+$dispatcher = new \App\Core\Http\Server\Handlers\Dispatcher();
 
-echo $response;
+$middlewareStack = [
+    new \App\Core\Http\Server\Middleware\OutputHeader,
+    new \App\Core\Http\Server\Middleware\VerifyToken,
+];
+
+$middlewareHandler = new \App\Core\Http\Server\Handlers\MiddlewareHandler($middlewareStack, $dispatcher);
+
+$response = $middlewareHandler->handle($request);
+
+http_response_code($response->getStatusCode());
+
+foreach ($response->getHeaders() as $name => $values) {
+    foreach ($values as $value) {
+        header(sprintf('%s: %s', $name, $value), false);
+    }
+}
+
+echo $response->getBody();
