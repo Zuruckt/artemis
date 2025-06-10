@@ -12,8 +12,13 @@ final readonly class MiddlewareHandler implements RequestHandlerInterface
 {
     /** @var SplDoublyLinkedList<MiddlewareInterface> $middlewareStack */
     private SplDoublyLinkedList $middlewareStack;
+
+    /**
+     * @param MiddlewareInterface[] $middlewareStack
+     * @param RequestHandlerInterface $tail
+     */
     public function __construct(
-        /** @var array<int, MiddlewareInterface> $middlewareStack */
+
         array $middlewareStack,
         private RequestHandlerInterface $tail,
     )

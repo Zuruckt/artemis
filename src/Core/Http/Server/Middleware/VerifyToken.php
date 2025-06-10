@@ -2,6 +2,7 @@
 
 namespace App\Core\Http\Server\Middleware;
 
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -11,14 +12,15 @@ class VerifyToken implements MiddlewareInterface
 {
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $query = $request->getQueryParams();
+        $token = $query['token'] ?? null;
 
-        if (empty($query['token'])) {
-            throw new \Exception('Token not found in request');
+        if (!$token) {
+            throw new Exception('Token not found in request');
         }
 
         return $handler->handle($request);
