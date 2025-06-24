@@ -6,6 +6,6 @@ serve:
 
 	- docker compose up -d
 
-bash:
+shell:
 
-	- docker exec -it --user $(UID):$(GID) artemis-php bash
+	- docker exec -it artemis-php /bin/sh
