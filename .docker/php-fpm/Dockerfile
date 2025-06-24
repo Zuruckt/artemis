@@ -1,11 +1,24 @@
-FROM phpdockerio/php:8.4-fpm
-WORKDIR "/var/www"
+FROM php:8.4-cli-alpine
 
-COPY --from=composer/composer:latest-bin /composer /usr/bin/composer
 
-RUN apt-get update \
-    && apt-get -y --no-install-recommends install \
-        php8.4-xdebug \
-        php8.4-ds \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php -r "if (hash_file('sha384', 'composer-setup.php') === 'dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6') { echo 'Installer verified'.PHP_EOL; } else { echo 'Installer corrupt'.PHP_EOL; unlink('composer-setup.php'); exit(1); }" \
+    && php composer-setup.php \
+    && php -r "unlink('composer-setup.php');" \
+    && chmod +x composer.phar \
+    && mv composer.phar /usr/bin/composer
+
+COPY --from=ghcr.io/php/pie:bin /pie /usr/bin/pie
+
+
+RUN apk --update --no-cache add \
+    git make autoconf build-base linux-headers
+
+#COPY ./entrypoint.sh /bin/entrypoint.sh
+#RUN chmod 775 /bin/entrypoint.sh
+#
+#ENTRYPOINT ["sudo", "-E", "/bin/entrypoint.sh"]
+
+#COPY ./entrypoint.sh /var/www/entrypoint.sh
+#
+#ENTRYPOINT "/var/www/entrypoint.sh"; \
