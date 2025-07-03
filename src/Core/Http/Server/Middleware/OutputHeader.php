@@ -15,8 +15,6 @@ class OutputHeader implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        header(\sprintf('%s: %s', 'X-Foo', 'Bar'));
-
-        return $handler->handle($request);
+        return $handler->handle($request)->withHeader('X-Foo', 'Bar');
     }
 }
