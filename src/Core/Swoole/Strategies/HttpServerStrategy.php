@@ -14,7 +14,7 @@ use Swoole\Http\Server;
 
 class HttpServerStrategy implements ServerStrategy
 {
-    public Server $server;
+    private Server $server;
     private array $middlewareStack = [
         OutputHeader::class,
         VerifyToken::class,
