@@ -21,6 +21,8 @@ class HttpServerStrategy implements ServerStrategy
     ];
 
     private MiddlewareHandler $middlewareHandler;
+
+    // todo: accept Application as dependecy?
     public function __construct(string $host, int $port)
     {
         $this->prepareHandlers();
@@ -35,6 +37,7 @@ class HttpServerStrategy implements ServerStrategy
 
             $serverRequest = ServerRequestFactory::fromSwooleRequest($request);
 
+            // $this->>application->requestHandler?
             $responseInterface = $this->middlewareHandler->handle($serverRequest);
 
             $response->setStatusCode($responseInterface->getStatusCode());
@@ -49,6 +52,7 @@ class HttpServerStrategy implements ServerStrategy
         });
     }
 
+    // TODO: move back to application
     public function prepareHandlers(): void
     {
         $middleware = array_map(function (string $className) {
