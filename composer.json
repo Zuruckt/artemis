@@ -41,7 +41,8 @@
         "symfony/var-dumper": "^7.2",
         "laradumps/laradumps-core": "^3.0",
         "ext-xdebug": "~3.4",
-        "swoole/ide-helper": "~5.0.0"
+        "swoole/ide-helper": "~5.0.0",
+        "mockery/mockery": "*"
     },
     "scripts": {
         "lint": "PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix",

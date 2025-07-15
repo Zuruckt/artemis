@@ -2,8 +2,10 @@
 
 namespace App\Core\Http\Shared\Enums;
 
-enum HttpStatusCodeEnum: int
+enum HttpStatusCode: int
 {
     case HTTP_OK = 200;
     case HTTP_NOT_FOUND = 404;
+
+    case HTTP_SERVER_ERROR = 500;
 }

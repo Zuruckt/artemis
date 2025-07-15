@@ -2,7 +2,7 @@
 
 namespace App\Core\Http\Server\Handlers;
 
-use App\Core\Http\Shared\Enums\HttpStatusCodeEnum;
+use App\Core\Http\Shared\Enums\HttpStatusCode;
 use Laminas\Diactoros\Response;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -21,6 +21,6 @@ class Dispatcher implements RequestHandlerInterface
             return new JsonResponse(['foo' => 'Hello World!']);
         }
 
-        return new JsonResponse([], status: HttpStatusCodeEnum::HTTP_NOT_FOUND->value);
+        return new JsonResponse([], status: HttpStatusCode::HTTP_NOT_FOUND->value);
     }
 }

@@ -2,43 +2,38 @@
 
 namespace App\Core\Swoole\Strategies;
 
+use App\Core\Http\Application;
 use App\Core\Http\Server\Factories\ServerRequestFactory;
-use App\Core\Http\Server\Handlers\Dispatcher;
-use App\Core\Http\Server\Handlers\MiddlewareHandler;
-use App\Core\Http\Server\Middleware\OutputHeader;
-use App\Core\Http\Server\Middleware\VerifyToken;
+use App\Core\Http\Shared\Enums\HttpStatusCode;
 use App\Core\Swoole\Contracts\ServerStrategy;
+use Laminas\Diactoros\Response\JsonResponse;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server;
 
 class HttpServerStrategy implements ServerStrategy
 {
-    private Server $server;
-    private array $middlewareStack = [
-        OutputHeader::class,
-        VerifyToken::class,
-    ];
-
-    private MiddlewareHandler $middlewareHandler;
-
-    // todo: accept Application as dependecy?
-    public function __construct(string $host, int $port)
+    public function __construct(private Application $app, private int $port)
     {
-        $this->prepareHandlers();
-        $this->prepareServer($host, $port);
     }
 
-    public function prepareServer(string $host, $port): void
+    public function start(): void
     {
-        $this->server = new Server($host, $port);
+        $server = $this->createServer();
 
-        $this->server->on('Request', function (Request $request, Response $response) {
-
+        $server->on('Request', function (Request $request, Response $response) {
             $serverRequest = ServerRequestFactory::fromSwooleRequest($request);
 
-            // $this->>application->requestHandler?
-            $responseInterface = $this->middlewareHandler->handle($serverRequest);
+            try {
+                $responseInterface = $this->app->handleRequest($serverRequest);
+            } catch (\Exception $exception) {
+                // TODO: actual exception handler
+                $exceptionCode = $exception->getCode();
+                $minCodeValue = 100;
+                $statusCode =  $exceptionCode >= $minCodeValue ? $exceptionCode : HttpStatusCode::HTTP_SERVER_ERROR->value;
+
+                $responseInterface = new JsonResponse(['error' => $exception->getMessage()], $statusCode);
+            }
 
             $response->setStatusCode($responseInterface->getStatusCode());
 
@@ -50,20 +45,15 @@ class HttpServerStrategy implements ServerStrategy
 
             $response->end($responseInterface->getBody()->getContents());
         });
+
+        $server->start();
     }
 
-    // TODO: move back to application
-    public function prepareHandlers(): void
+    /**
+     * @return Server
+     */
+    protected function createServer(): Server
     {
-        $middleware = array_map(function (string $className) {
-            return new $className();
-        }, $this->middlewareStack);
-
-        $this->middlewareHandler = new MiddlewareHandler($middleware, new Dispatcher());
-    }
-
-    public function start(): void
-    {
-        $this->server->start();
+        return new Server("0.0.0.0", $this->port);
     }
 }

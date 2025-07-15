@@ -2,41 +2,38 @@
 
 namespace Tests\Unit;
 
-use App\Core\Http\Server\Handlers\MiddlewareHandler;
+use App\Core\Http\Application;
 use App\Core\Swoole\Strategies\HttpServerStrategy;
+use http\Env\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
-use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
-use Swoole\Http\Server as SwooleServer;
+use Psr\Http\Message\ResponseInterface;
+use Swoole\Http\Server;
 
 #[CoversClass(HttpServerStrategy::class)]
-#[CoversClass(MiddlewareHandler::class)]
-#[CoversMethod(HttpServerStrategy::class, 'prepareServer')]
 class HttpServerStrategyTest extends TestCase
 {
-    public function test_server_is_initialized_with_host_and_port(): void
+    public function test_server_registers_request_event()
     {
-        $strategy = new HttpServerStrategy('0.0.0.0', 9501);
+        $mockApp = \Mockery::spy(Application::class);
+        $mockApp->shouldReceive('handleRequest')
+            ->once()
+            ->andReturn($this->createMock(ResponseInterface::class));
 
-    }
+        $serverMock = \Mockery::spy(Server::class);
 
-    public function test_middleware_handler_is_prepared(): void
-    {
-        $strategy = $this->getMockBuilder(HttpServerStrategy::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['prepareServer'])
-            ->getMock();
+        $serverMock->shouldReceive('start')
+            ->andReturn()
+            ->once();
 
-        $reflection = new \ReflectionClass(HttpServerStrategy::class);
-        $method = $reflection->getMethod('prepareHandlers');
-        $method->setAccessible(true);
-        $method->invoke($strategy);
+        $mockStrategy = $this->createPartialMock(HttpServerStrategy::class, ['createServer']);
 
-        $middlewareHandlerProp = $reflection->getProperty('middlewareHandler');
-        $middlewareHandlerProp->setAccessible(true);
-        $middleware_handler = $middlewareHandlerProp->getValue($strategy);
+        $mockStrategy->expects($this->once())
+            ->method('createServer')
+            ->willReturn($serverMock);
 
-        $this->assertInstanceOf(MiddlewareHandler::class, $middleware_handler);
+        $mockStrategy->start();
+
+        $serverMock->shouldHaveReceived('on');
     }
 }
