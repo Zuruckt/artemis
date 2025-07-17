@@ -27,7 +27,6 @@ class KernelTest extends TestCase
         $kernel->boot();
         $response = $kernel->handle($mockRequest);
 
-//        $kernel->shouldHaveReceived('prepareHandler');
         $this->assertSame($response, $mockResponse);
     }
 }

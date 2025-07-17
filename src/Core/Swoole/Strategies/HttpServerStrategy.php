@@ -9,51 +9,53 @@ use App\Core\Swoole\Contracts\ServerStrategy;
 use Laminas\Diactoros\Response\JsonResponse;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use Swoole\Http\Server;
+use Swoole\Server;
 
 class HttpServerStrategy implements ServerStrategy
 {
-    public function __construct(private Application $app, private int $port)
+
+    public function __construct(private readonly Application $app, private readonly Server $server)
     {
+        $this->registerEvents();
     }
 
     public function start(): void
     {
-        $server = $this->createServer();
-
-        $server->on('Request', function (Request $request, Response $response) {
-            $serverRequest = ServerRequestFactory::fromSwooleRequest($request);
-
-            try {
-                $responseInterface = $this->app->handleRequest($serverRequest);
-            } catch (\Exception $exception) {
-                // TODO: actual exception handler
-                $exceptionCode = $exception->getCode();
-                $minCodeValue = 100;
-                $statusCode =  $exceptionCode >= $minCodeValue ? $exceptionCode : HttpStatusCode::HTTP_SERVER_ERROR->value;
-
-                $responseInterface = new JsonResponse(['error' => $exception->getMessage()], $statusCode);
-            }
-
-            $response->setStatusCode($responseInterface->getStatusCode());
-
-            foreach ($responseInterface->getHeaders() as $name => $values) {
-                foreach ($values as $value) {
-                    $response->header($name, $value);
-                }
-            }
-
-            $response->end($responseInterface->getBody()->getContents());
-        });
-
-        $server->start();
+        $this->server->start();
     }
 
-    /**
-     * @return Server
-     */
-    protected function createServer(): Server
+    public function shutdown(): bool
     {
-        return new Server("0.0.0.0", $this->port);
+        return $this->server->shutdown();
+    }
+    public function registerEvents(): void
+    {
+        $this->server->on('request', [$this, 'onRequest']);
+    }
+
+    public function onRequest(Request $request, Response $response): void
+    {
+        $serverRequest = ServerRequestFactory::fromSwooleRequest($request);
+
+        try {
+            $responseInterface = $this->app->handleRequest($serverRequest);
+        } catch (\Exception $exception) {
+            // TODO: actual exception handler
+            $exceptionCode = $exception->getCode();
+            $minCodeValue = 100;
+            $statusCode = $exceptionCode >= $minCodeValue ? $exceptionCode : HttpStatusCode::HTTP_SERVER_ERROR->value;
+
+            $responseInterface = new JsonResponse(['error' => $exception->getMessage()], $statusCode);
+        }
+
+        $response->setStatusCode($responseInterface->getStatusCode());
+
+        foreach ($responseInterface->getHeaders() as $name => $values) {
+            foreach ($values as $value) {
+                $response->header($name, $value);
+            }
+        }
+
+        $response->end($responseInterface->getBody()->getContents());
     }
 }

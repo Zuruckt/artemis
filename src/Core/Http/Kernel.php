@@ -16,8 +16,8 @@ class Kernel implements RequestHandlerInterface
 
     /** @var array<class-string<\Psr\Http\Server\MiddlewareInterface>> */
     protected array $middlewareStack = [
-        OutputHeader::class,
         VerifyToken::class,
+        OutputHeader::class,
     ];
 
     public function boot(): self

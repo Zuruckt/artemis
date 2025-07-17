@@ -6,6 +6,7 @@ use App\Core\Http\Application;
 use App\Core\Swoole\Strategies\HttpServerStrategy;
 use App\Core\Http\Kernel;
 use Dotenv\Dotenv;
+use Swoole\Http\Server;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -16,6 +17,8 @@ $env->load();
 
 $kernel = new Kernel()->boot();
 $app = new Application($kernel);
-$strategy = new HttpServerStrategy($app, (int) $_ENV['APP_SWOOLE_SERVER_PORT']);
+
+$server = new Server('0.0.0.0', (int) $_ENV['APP_SWOOLE_SERVER_PORT']);
+$strategy = new HttpServerStrategy($app, $server);
 
 $strategy->start();
