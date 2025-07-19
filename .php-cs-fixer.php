@@ -12,6 +12,7 @@ $finder = Finder::create()
 return new Config()
     ->setRules([
         '@PhpCsFixer:risky' => true,
+        'declare_strict_types' => true,
     ])
     ->setFinder($finder)
     ->setRiskyAllowed(true);
