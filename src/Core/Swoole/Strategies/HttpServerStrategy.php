@@ -38,7 +38,7 @@ class HttpServerStrategy implements ServerStrategy
         $serverRequest = ServerRequestFactory::fromSwooleRequest($request);
 
         try {
-            $responseInterface = $this->app->handleRequest($serverRequest);
+            $responseInterface = $this->app->handle($serverRequest);
         } catch (\Exception $exception) {
             // TODO: actual exception handler
             $exceptionCode = $exception->getCode();

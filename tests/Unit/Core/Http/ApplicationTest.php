@@ -3,6 +3,8 @@
 namespace Tests\Unit\Core\Http;
 
 use App\Core\Http\Application;
+use Laminas\Diactoros\ServerRequest;
+use Mockery;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -12,20 +14,21 @@ use Psr\Http\Server\RequestHandlerInterface;
 #[CoversClass(Application::class)]
 class ApplicationTest extends TestCase
 {
-    public function test_application_calls_handler(): void
+    public function test_applications_produces_response_from_incoming_request(): void
     {
-        $handlerSpy = \Mockery::spy(RequestHandlerInterface::class);
+        $applicationSpy = Mockery::spy(Application::class)->makePartial();
+        $handlerMock = Mockery::spy(RequestHandlerInterface::class);
         $requestMock = $this->createMock(ServerRequestInterface::class);
         $responseMock = $this->createMock(ResponseInterface::class);
 
-        $handlerSpy->shouldReceive('handle')
-            ->andReturn($responseMock);
 
-        $application = new Application($handlerSpy);
+        $applicationSpy->shouldAllowMockingProtectedMethods();
+        $applicationSpy->shouldReceive('createHandler')->andReturn($handlerMock);
 
-        $response = $application->handleRequest($requestMock);
+        $handlerMock->shouldReceive('handle')->andReturn($responseMock);
 
-        $handlerSpy->shouldHaveReceived('handle');
+        $response = $applicationSpy->handle($requestMock);
+
         $this->assertSame($responseMock, $response);
     }
 }

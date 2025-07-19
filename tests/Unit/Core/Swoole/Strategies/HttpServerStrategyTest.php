@@ -76,7 +76,7 @@ class HttpServerStrategyTest extends TestCase
         $responseBody = ['message' => 'hello'];
         $psrResponse = new JsonResponse($responseBody, 200);
 
-        $application->method('handleRequest')
+        $application->method('handle')
             ->willReturn($psrResponse);
 
         $strategy = new HttpServerStrategy($application, $server);
@@ -106,7 +106,7 @@ class HttpServerStrategyTest extends TestCase
     public function test_on_request_handles_thrown_exceptions()
     {
         $application = $this->createMock(Application::class);
-        $application->method('handleRequest')
+        $application->method('handle')
             ->willThrowException(new RuntimeException('Something went wrong', 0));
 
         $server = $this->createMock(Server::class);

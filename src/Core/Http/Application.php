@@ -2,18 +2,34 @@
 
 namespace App\Core\Http;
 
-use Psr\Http\Message\ResponseInterface;
+use App\Core\Http\Server\Handlers\Dispatcher;
+use App\Core\Http\Server\Handlers\MiddlewareHandler;
+use App\Core\Http\Server\Middleware\OutputHeader;
+use App\Core\Http\Server\Middleware\VerifyToken;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class Application
+class Application implements RequestHandlerInterface
 {
-    public function __construct(
-        protected RequestHandlerInterface $handler
-    ) {}
+    /** @var array<class-string<MiddlewareInterface>> */
+    protected array $middlewareStack = [
+        VerifyToken::class,
+        OutputHeader::class,
+    ];
 
-    public function handleRequest(ServerRequestInterface $request): ResponseInterface
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->handler->handle($request);
+        $handler = $this->createHandler();
+        return $handler->handle($request);
+    }
+
+    protected function createHandler(): RequestHandlerInterface
+    {
+        // TODO: create router and move middleware to route specific
+        $middleware = array_map(fn($class): MiddlewareInterface => new $class(), $this->middlewareStack);
+
+        return new MiddlewareHandler($middleware, new Dispatcher());
     }
 }
