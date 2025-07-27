@@ -1,9 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Tests\Unit\Core\Http\Server\Handlers;
 
 use App\Core\Http\Server\Handlers\Dispatcher;
-use App\Core\Http\Shared\Enums\HttpStatusCodeEnum;
+use App\Core\Http\Shared\Enums\HttpStatusCode;
 use Laminas\Diactoros\Response\JsonResponse;
 use Laminas\Diactoros\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -36,22 +36,22 @@ class DispatcherTest extends TestCase
             [
                 'uri' => 'http://fake.url/hello',
                 'method' => 'GET',
-                'response' => new JsonResponse(['foo' => 'Hello World!'], HttpStatusCodeEnum::HTTP_OK->value),
+                'response' => new JsonResponse(['foo' => 'Hello World!'], HttpStatusCode::HTTP_OK->value),
             ],
             [
                 'uri' => 'http://fake.url/hello',
                 'method' => 'POST',
-                'response' => new JsonResponse([], HttpStatusCodeEnum::HTTP_NOT_FOUND->value),
+                'response' => new JsonResponse([], HttpStatusCode::HTTP_NOT_FOUND->value),
             ],
             [
                 'uri' => 'http://fake.url/unknown',
                 'method' => 'GET',
-                'response' => new JsonResponse([], HttpStatusCodeEnum::HTTP_NOT_FOUND->value),
+                'response' => new JsonResponse([], HttpStatusCode::HTTP_NOT_FOUND->value),
             ],
             [
                 'uri' => 'http://fake.url/unknown',
                 'method' => 'POST',
-                'response' => new JsonResponse([], HttpStatusCodeEnum::HTTP_NOT_FOUND->value),
+                'response' => new JsonResponse([], HttpStatusCode::HTTP_NOT_FOUND->value),
             ],
         ];
     }
