@@ -2,34 +2,48 @@
 
 namespace App\Core\Http;
 
+use App\Core\Http\Routing\ControllerInvoker;
+use App\Core\Http\Routing\Router;
 use App\Core\Http\Server\Handlers\Dispatcher;
 use App\Core\Http\Server\Handlers\MiddlewareHandler;
 use App\Core\Http\Server\Middleware\OutputHeader;
 use App\Core\Http\Server\Middleware\VerifyToken;
-use Psr\Http\Message\ServerRequestInterface;
+use App\Core\Http\Shared\Exceptions\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 class Application implements RequestHandlerInterface
 {
-    /** @var array<class-string<MiddlewareInterface>> */
-    protected array $middlewareStack = [
-        VerifyToken::class,
-        OutputHeader::class,
-    ];
-
-    public function handle(ServerRequestInterface $request): ResponseInterface
+    public function __construct(private Router $router)
     {
-        $handler = $this->createHandler();
-        return $handler->handle($request);
     }
 
-    protected function createHandler(): RequestHandlerInterface
+    /**
+     * @throws RouteNotFoundException
+     */
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        // TODO: create router and move middleware to route specific
-        $middleware = array_map(static fn($class): MiddlewareInterface => new $class(), $this->middlewareStack);
+        $match = $this->router->match($request);
 
-        return new MiddlewareHandler($middleware, new Dispatcher());
+        if (!$match) {
+            throw new RouteNotFoundException;
+        }
+
+        $invoker = new ControllerInvoker($match);
+        $middlewareHandler = $this->createHandler($match->route->middleware, $invoker);
+
+        return $middlewareHandler->handle($request);
+    }
+
+    /**
+     * @param class-string[] $middleware
+     */
+    protected function createHandler(array $middleware, RequestHandlerInterface $invoker): RequestHandlerInterface
+    {
+        $middlewareInstances = array_map(static fn($class): MiddlewareInterface => new $class(), $middleware);
+
+        return new MiddlewareHandler($middlewareInstances, $invoker);
     }
 }
