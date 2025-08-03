@@ -39,7 +39,7 @@ final readonly class MiddlewareHandler implements RequestHandlerInterface
         return $this->dispatch($request);
     }
 
-    public function dispatch(ServerRequestInterface $request): ResponseInterface
+    private function dispatch(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->middlewareStack->valid()) {
             return $this->tail->handle($request);

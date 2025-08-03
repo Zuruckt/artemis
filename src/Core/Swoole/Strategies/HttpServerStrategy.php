@@ -43,7 +43,7 @@ class HttpServerStrategy implements ServerStrategy
             // TODO: actual exception handler
             $exceptionCode = $exception->getCode();
             $minCodeValue = 100;
-            $statusCode = $exceptionCode >= $minCodeValue ? $exceptionCode : HttpStatusCode::HTTP_SERVER_ERROR->value;
+            $statusCode = (int) $exceptionCode >= $minCodeValue ? $exceptionCode : HttpStatusCode::HTTP_SERVER_ERROR->value;
 
             $responseInterface = new JsonResponse(['error' => $exception->getMessage()], $statusCode);
         }
