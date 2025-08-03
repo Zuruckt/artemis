@@ -3,10 +3,14 @@
 namespace App\Core\Http\Routing;
 
 use App\Core\Http\Shared\Enums\HttpMethod;
+use App\Core\Http\Shared\Enums\HttpStatusCode;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use WeakMap;
 
-class Router
+class AppRouter
 {
     /** @var WeakMap<HttpMethod, Route[]> $routes */
     private WeakMap $routes;
@@ -25,13 +29,15 @@ class Router
         $this->routes[$method][] = $route;
     }
 
-    public function match(ServerRequestInterface $request): RouteMatch | false
+    public function match(ServerRequestInterface $request): RouteMatch | ResponseInterface
     {
         $method = HttpMethod::tryFrom(strtoupper($request->getMethod()));
         $path = $request->getUri()->getPath();
 
+        $notFound = new JsonResponse(['error' => 'Route note found'], HttpStatusCode::HTTP_NOT_FOUND->value);
+
         if (!$method) {
-            return false;
+            return $notFound;
         }
 
         $methodRoutes = $this->routes[$method] ??= [];
@@ -49,7 +55,7 @@ class Router
             }
         }
 
-        return false;
+        return $notFound;
     }
 
     public function matchAndExtractParams(string $path, Route $route): array | false

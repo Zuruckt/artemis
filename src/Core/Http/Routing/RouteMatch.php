@@ -2,7 +2,7 @@
 
 namespace App\Core\Http\Routing;
 
-class RouteMatch
+readonly class RouteMatch
 {
     public function __construct(
         public Route $route,

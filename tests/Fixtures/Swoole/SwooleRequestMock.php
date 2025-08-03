@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Mocks\Swoole;
+namespace Tests\Fixtures\Swoole;
 
 use Swoole\Http\Request;
 
