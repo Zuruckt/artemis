@@ -2,12 +2,12 @@
 
 namespace App\Core\Http\Routing;
 
+use App\Core\Http\Routing\Exceptions\InvalidRoutingConfiguration;
 use App\Core\Http\Shared\Enums\HttpMethod;
 use App\Core\Http\Shared\Enums\HttpStatusCode;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use WeakMap;
 
 class AppRouter
@@ -15,15 +15,23 @@ class AppRouter
     /** @var WeakMap<HttpMethod, Route[]> $routes */
     private WeakMap $routes;
 
-    public function __construct()
+    /**
+     * @param Route[] $routes
+     */
+    public function __construct(array $routes)
     {
         $this->routes = new WeakMap();
+
         foreach (HttpMethod::cases() as $method) {
             $this->routes[$method] = [];
         }
+
+        foreach ($routes as $route) {
+            $this->register($route);
+        }
     }
 
-    public function register(Route $route): void
+    private function register(Route $route): void
     {
         $method = $route->method;
         $this->routes[$method][] = $route;
@@ -68,5 +76,19 @@ class AppRouter
         }
 
         return array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+    }
+
+    /**
+     * @throws InvalidRoutingConfiguration
+     */
+    public static function createFromRoutingFile(string $path): self
+    {
+        $routes = require $path;
+
+        if (!is_array($routes)) {
+            throw InvalidRoutingConfiguration::invalidRouteArray($path);
+        }
+
+        return new self($routes);
     }
 }
