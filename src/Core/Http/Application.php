@@ -2,34 +2,30 @@
 
 namespace App\Core\Http;
 
-use App\Core\Http\Server\Handlers\Dispatcher;
-use App\Core\Http\Server\Handlers\MiddlewareHandler;
-use App\Core\Http\Server\Middleware\OutputHeader;
-use App\Core\Http\Server\Middleware\VerifyToken;
-use Psr\Http\Message\ServerRequestInterface;
+use App\Core\Http\Routing\ControllerInvoker;
+use App\Core\Http\Routing\AppRouter;
+use App\Core\Http\Server\Factories\MiddlewareHandlerFactory;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 class Application implements RequestHandlerInterface
 {
-    /** @var array<class-string<MiddlewareInterface>> */
-    protected array $middlewareStack = [
-        VerifyToken::class,
-        OutputHeader::class,
-    ];
+    public function __construct(
+        private readonly AppRouter                $router,
+        private readonly MiddlewareHandlerFactory $handlerFactory
+    ) {}
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $handler = $this->createHandler();
-        return $handler->handle($request);
-    }
+        $match = $this->router->match($request);
 
-    protected function createHandler(): RequestHandlerInterface
-    {
-        // TODO: create router and move middleware to route specific
-        $middleware = array_map(static fn($class): MiddlewareInterface => new $class(), $this->middlewareStack);
+        if ($match instanceof ResponseInterface) {
+            return $match;
+        }
 
-        return new MiddlewareHandler($middleware, new Dispatcher());
+        $invoker = new ControllerInvoker($match);
+        return $this->handlerFactory->make($match->route->middleware, $invoker)
+            ->handle($request);
     }
 }
