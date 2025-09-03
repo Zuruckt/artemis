@@ -8,7 +8,7 @@ use App\Core\Swoole\Strategies\HttpServerStrategy;
 use Laminas\Diactoros\Response\JsonResponse;
 use Mockery;
 use RuntimeException;
-use Tests\Mocks\Swoole\SwooleRequestMock;
+use Tests\Fixtures\Swoole\SwooleRequestMock;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
